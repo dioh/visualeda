@@ -8,6 +8,8 @@
 <textarea id="csvInputString"></textarea>
 <input type="button" value="add data" id="add" onclick="parseCSV()" />
 <script>
+    var nodes = [];
+var links = [];
     function parseCSV(){
 
         var csvString = document.getElementById("csvInputString").value;
@@ -21,7 +23,100 @@
         var results_data = document.getElementById("csvdata");
         results_data.innerHTML=JSON.stringify(results.data, null, 2); 
 
-    }
+        var matrix = transformToMatrix(results.data);
+        console.log(JSON.stringify(combinationsOfTwo(Object.keys(matrix))));
+        console.log(JSON.stringify(transformToMatrix(results.data)));
+
+// Crea los nodos
+
+
+        Object.keys(matrix).forEach((current, index, input_arr) => {
+            nodes.push({"id": index, "name": current}); 
+        });
+
+        combinationsOfTwo(Object.keys(matrix)).forEach((
+            current, index, input_arr) => {
+                var weight = pearsonCorrelation(matrix, current[0], current[1]);
+                var nodeSourceId = Object.keys(matrix).indexOf(current[0]);
+                var nodeTargetId = Object.keys(matrix).indexOf(current[1]);
+                links.push({"source": nodeSourceId, "target": nodeTargetId,
+                    "weight": weight});
+            });
+
+        //plotCorAdjMatrix(nodes, links);
+    };
+
+function pearsonCorrelation(prefs, p1, p2) {
+  var si = [];
+
+  for (var key in prefs[p1]) {
+    if (prefs[p2][key]) si.push(key);
+  }
+
+  var n = si.length;
+
+  if (n == 0) return 0;
+
+  var sum1 = 0;
+  for (var i = 0; i < si.length; i++) sum1 += prefs[p1][si[i]];
+
+  var sum2 = 0;
+  for (var i = 0; i < si.length; i++) sum2 += prefs[p2][si[i]];
+
+  var sum1Sq = 0;
+  for (var i = 0; i < si.length; i++) {
+    sum1Sq += Math.pow(prefs[p1][si[i]], 2);
+  }
+
+  var sum2Sq = 0;
+  for (var i = 0; i < si.length; i++) {
+    sum2Sq += Math.pow(prefs[p2][si[i]], 2);
+  }
+
+  var pSum = 0;
+  for (var i = 0; i < si.length; i++) {
+    pSum += prefs[p1][si[i]] * prefs[p2][si[i]];
+  }
+
+  var num = pSum - (sum1 * sum2 / n);
+  var den = Math.sqrt((sum1Sq - Math.pow(sum1, 2) / n) *
+      (sum2Sq - Math.pow(sum2, 2) / n));
+
+  if (den == 0) return 0;
+
+  return num / den;
+}
+
+
+function combinationsOfTwo(iterable){
+    var combinations = [];
+    for (var i = 0, length = iterable.length; i< length; ++i) {
+        for (var ii = i+1, length = iterable.length; ii < length; ++ii) { 
+            var comb = [iterable[i], iterable[ii]];
+            combinations.push(comb); 
+        } 
+    } 
+    return combinations;
+};
+
+function transformToMatrix(json_data){
+    output = Object();
+    json_data.forEach((current, index, input_arr) => {
+        /* Do something with `current` */
+        Object.keys(current).forEach((k, ki, input_arr_i) => {
+
+            if(typeof output[k] === 'undefined'){
+                output[k] = [];
+            } 
+            output[k].push(current[k]); 
+        });
+    });
+
+    return(output);
+
+};
+
+
 </script>
 
 <div class="slider_selector">
@@ -35,130 +130,3 @@
     </div>
 <svg width="800" height="600"></svg>
 
-<script>
-var svg = d3.select("svg"),
-    width = +svg.attr("width"),
-    height = +svg.attr("height"),
-    color = d3.scaleOrdinal(d3.schemeCategory10);
-var a = {id: "a"},
-    b = {id: "b"},
-    c = {id: "c"},
-    d = {id: "d"},
-    nodes = [d, a, b, c],
-    label = [];
-    links = [];
-
-var simulation, g, link, node;
-
-var graph = { "nodes": [ { "id": 1, "name": "A" }, { "id": 2, "name": "B" }, { "id": 3, "name": "C" }, { "id": 4, "name": "D" }, { "id": 5, "name": "E" }, { "id": 6, "name": "F" }, { "id": 7, "name": "G" }, { "id": 8, "name": "H" }, { "id": 9, "name": "I" }, { "id": 10, "name": "J" } ], "links": [ { "source": 1, "target": 2, "weight": 0.8 }, { "source": 1, "target": 5, "weight": 0.2 }, { "source": 1, "target": 6, "weight": 1 }, { "source": 2, "target": 3, "weight": 0.1 }, { "source": 2, "target": 7, "weight": 0.7 }, { "source": 2, "target": 8, "weight": 0.6 } , { "source": 3, "target": 4, "weight": 0.8 },    { "source": 3, "target": 5, "weight": 0.8 }, { "source": 8, "target": 3, "weight": 0.5 } , { "source": 4, "target": 5, "weight": 0.1 } , { "source": 4, "target": 9, "weight": 0.3 }, { "source": 3, "target": 0, "weight": 0.2 }, { "source": 6, "target": 7, "weight": 0.2 }, { "source": 6, "target": 8, "weight": 0.8 }, { "source": 8, "target": 0, "weight": 0.9 } ] };
-//d3.json(data, function(error, graph) {
-  //if (error) throw error;
-  // console.log(graph.nodes);
-  // links = graph.links;
-  nodes = graph.nodes;
-  links = graph.links;
-
-  simulation = d3.forceSimulation(nodes)
-    .force("charge", d3.forceManyBody().strength(-1000))
-    .force("link", d3.forceLink(links).distance(function (d) {return 100 * d.weight;}))
-    .force("x", d3.forceX())
-    .force("y", d3.forceY())
-    // .alphaTarget(1)
-    .on("tick", ticked);
-
-
-  g = svg.append("g").attr("transform", "translate(" + width / 2 + "," + height / 2 + ")"),
-  link = g.append("g").attr("stroke", "#000").attr("stroke-width", 1.5).selectAll(".link"),
-  node = g.append("g").attr("stroke", "#fff").attr("stroke-width", 1.5).selectAll(".node");
-  label = g.append("g").selectAll(".label");
-
-
-  d3.select("#step_val").property("value", 0);
-  d3.select("#step_val-value").text(0);
-  restart(0);
-
-// })
-
-
-d3.select("#step_val").on("input", function() {
-  // console.log(this.value);
-  d3.select("#step_val-value").text(this.value);
-  restart(this.value)
-});
-
-// d3.timeout(function() {
-  // links.push({source: 0, target: 1}); // Add a-b.
-  // links.push({source: 1, target: 2}); // Add b-c.
-  // links.push({source: 2, target: 0}); // Add c-a.
-  // console.log(links)
-  // restart();
-// }, 1000);
-
-// d3.interval(function() {
-//   nodes.pop(); // Remove c.
-//   links.pop(); // Remove c-a.
-//   // links.pop(); // Remove b-c.
-//   restart();
-// }, 2000, d3.now());
-
-// d3.interval(function() {
-//   nodes.push(c); // Re-add c.
-//   // links.push({source: 1, target: 2}); // Re-add b-c.
-//   links.push({source: 1, target: 0}); // Re-add c-a.
-//   restart();
-// }, 2000, d3.now() + 1000);
-
-function restart(alpha_idx) {
-  // Apply the general update pattern to the nodes.
-  node = node.data(nodes, function(d) { return d.id;});
-  node.exit().remove();
-  node = node.enter().append("circle").attr("fill", function(d) { return color(d.id); }).attr("r", 8)
-        .call(d3.drag()
-            .on("start", dragstarted)
-            .on("drag", dragged)
-            .on("end", dragended))
-        .merge(node);
-  // node = node.enter().append("text").text(function(d) { return "-" + d.id; }).merge(node);
-  // Apply the general update pattern to the labels.
-  // Apply the general update pattern to the links.
-  link = link.data(links.filter(function (d) { return d.weight>alpha_idx;}), function(d) { return d.source + "-" + d.target; })
-
-  // link = link.data(links, function(d) { return d.source.id + "-" + d.target.id; });
-  link.exit().remove();
-  link = link.enter().append("line").merge(link);
-  // Update and restart the simulation.
-  simulation.nodes(nodes);
-  simulation.force("link").links(links.filter(function (d) { return d.weight>alpha_idx;}));
-  // simulation.force("link", d3.forceLink(link).distance(function (d) {return 100 * d.weight;}))
-  simulation.alpha(1).restart();
-}
-
-function ticked() {
-  node.attr("cx", function(d) { return d.x; })
-      .attr("cy", function(d) { return d.y; })
-  link.attr("x1", function(d) { return d.source.x; })
-      .attr("y1", function(d) { return d.source.y; })
-      .attr("x2", function(d) { return d.target.x; })
-      .attr("y2", function(d) { return d.target.y; });
-  label
-      .attr("x", function(d) { return d.x; })
-      .attr("y", function (d) { return d.y; });
-}
-
-function dragstarted(d) {
-  if (!d3.event.active) simulation.alphaTarget(0.3).restart();
-  d.fx = d.x;
-  d.fy = d.y;
-}
-
-function dragged(d) {
-  d.fx = d3.event.x;
-  d.fy = d3.event.y;
-}
-
-function dragended(d) {
-  if (!d3.event.active) simulation.alphaTarget(0);
-  d.fx = null;
-  d.fy = null;
-}
-</script>
