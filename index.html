@@ -55,11 +55,13 @@
               <a class="nav-link active" href="#" >Carga de Datos <span class="sr-only">(current)</span></a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="#" onclick="parseURLCSV()"> Carga de CSV por URL</a>
-              <textarea id="csvInputStringURL" class="form-control" rows="5"></textarea>
+              <a class="nav-link" href="#" onclick="parseCSVURL()"> Carga de CSV por URL</a>
+              <input type="text" id="csvInputStringURL"  class="form-control" id="basic-url" aria-describedby="basic-addon3"></input>
+
+              <!-- <textarea id="csvInputStringURL" class="form&#45;control" rows="5"></textarea> -->
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="#" onclick="parseCSV()"> Carga de CSV textual</a>
+              <a class="nav-link" href="#" onclick="parseCSVTextual()"> Carga de CSV textual</a>
               <textarea id="csvInputString" class="form-control" rows="5"></textarea>
             </li>
           </ul>
@@ -116,21 +118,37 @@
     </div>
 <script>
 
-     $("#resultados").hide(); 
-    var nodes = [];
+$("#resultados").hide(); 
+var nodes = [];
 var links = [];
-    function parseCSV(){
+
+function parseCSVURL(){
+    var text = $('#csvInputStringURL').val();
+    Papa.parse(text, {
+	download: true,
+	complete: function(results) {
+		transformData(results);
+            // console.log(results);
+	}
+});
+
+}
+function parseCSVTextual(){
+    var csvString = document.getElementById("csvInputString").value;
+    var config = {	'dynamicTyping': true,
+        'header': true};
+    var results = Papa.parse(csvString, config);
+    transformData(results); 
+
+}
+    function transformData(results){
         $("#noresultados").hide();
         $("#resultados").show(); 
 
-        var csvString = document.getElementById("csvInputString").value;
-        var config = {	'dynamicTyping': true,
-                        'header': true};
-        var results = Papa.parse(csvString, config);
         var text = results.meta;
 
         var results_status = document.getElementById("addcsvdatastatus");
-        results_status.innerHTML= "Cantidad de filas: " + results.meta.fields.length; 
+        results_status.innerHTML= "Errores: " + results.errors.length; 
         var results_data = document.getElementById("csvdata");
         results_data.innerHTML= "Cantidad de columnas: " + Object.keys(results.data).length; 
 
