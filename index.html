@@ -12,6 +12,10 @@
     <link href="dashboard.css" rel="stylesheet">
   </head>
 
+        <script
+                     src="https://code.jquery.com/jquery-3.2.1.min.js"
+                     integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+                     crossorigin="anonymous"></script>
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.3.6/papaparse.js"></script>
 <body>
@@ -48,10 +52,14 @@
         <nav class="col-sm-3 col-md-2 d-none d-sm-block bg-light sidebar">
           <ul class="nav nav-pills flex-column">
             <li class="nav-item">
-              <a class="nav-link active" href="#" onclick="parseCSV()">Carga de Datos <span class="sr-only">(current)</span></a>
+              <a class="nav-link active" href="#" >Carga de Datos <span class="sr-only">(current)</span></a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="#"> Carga de CSV textual</a>
+              <a class="nav-link" href="#" onclick="parseURLCSV()"> Carga de CSV por URL</a>
+              <textarea id="csvInputStringURL" class="form-control" rows="5"></textarea>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" onclick="parseCSV()"> Carga de CSV textual</a>
               <textarea id="csvInputString" class="form-control" rows="5"></textarea>
             </li>
           </ul>
@@ -59,37 +67,61 @@
         <main role="main" class="col-sm-9 ml-sm-auto col-md-10 pt-3">
           <h1>EDA para series temporales</h1>
 
+          <div id="noresultados">
+          <section class="row text-center placeholders">
+            <div class="col-6 col-sm-3 placeholder">
+                No se subieron datos, siga el instructivo.
+            </div>
+          </section>
+          </div>
           <div id="resultados">
           <section class="row text-center placeholders">
             <div class="col-6 col-sm-3 placeholder">
-              <img src="data:image/gif;base64,R0lGODlhAQABAIABAAJ12AAAACwAAAAAAQABAAACAkQBADs=" width="200" height="200" class="img-fluid rounded-circle" alt="Generic placeholder thumbnail">
-              <h4>Label</h4>
-              <div class="text-muted">Something else</div>
+                <div id="addcsvdatastatus"></div>
+              <h4>Estado de la carga</h4>
+              <!-- <div class="text&#45;muted">Carga ok? </div> -->
             </div>
             <div class="col-6 col-sm-3 placeholder">
-              <img src="data:image/gif;base64,R0lGODlhAQABAIABAADcgwAAACwAAAAAAQABAAACAkQBADs=" width="200" height="200" class="img-fluid rounded-circle" alt="Generic placeholder thumbnail">
+                <div id="csvdata"></div>
+              <h4>Estado de la carga</h4>
               <h4>Label</h4>
               <span class="text-muted">Something else</span>
             </div>
-            <div class="col-6 col-sm-3 placeholder">
-              <img src="data:image/gif;base64,R0lGODlhAQABAIABAAJ12AAAACwAAAAAAQABAAACAkQBADs=" width="200" height="200" class="img-fluid rounded-circle" alt="Generic placeholder thumbnail">
-              <h4>Label</h4>
-              <span class="text-muted">Something else</span>
-            </div>
-            <div class="col-6 col-sm-3 placeholder">
-              <img src="data:image/gif;base64,R0lGODlhAQABAIABAADcgwAAACwAAAAAAQABAAACAkQBADs=" width="200" height="200" class="img-fluid rounded-circle" alt="Generic placeholder thumbnail">
-              <h4>Label</h4>
-              <span class="text-muted">Something else</span>
-            </div>
+            <!-- <div class="col&#45;6 col&#45;sm&#45;3 placeholder"> -->
+            <!--   <img src="data:image/gif;base64,R0lGODlhAQABAIABAAJ12AAAACwAAAAAAQABAAACAkQBADs=" width="200" height="200" class="img&#45;fluid rounded&#45;circle" alt="Generic placeholder thumbnail"> -->
+            <!--   <h4>Label</h4> -->
+            <!--   <span class="text&#45;muted">Something else</span> -->
+            <!-- </div> -->
+            <!-- <div class="col&#45;6 col&#45;sm&#45;3 placeholder"> -->
+            <!--   <img src="data:image/gif;base64,R0lGODlhAQABAIABAADcgwAAACwAAAAAAQABAAACAkQBADs=" width="200" height="200" class="img&#45;fluid rounded&#45;circle" alt="Generic placeholder thumbnail"> -->
+            <!--   <h4>Label</h4> -->
+            <!--   <span class="text&#45;muted">Something else</span> -->
+            <!-- </div> -->
+          </section> 
+          <section class="row text-center placeholders">
+              <div class="slider_selector">
+                  <p style="text-align:center;">
+                  <label for="step_val"
+                         style="display: inline-block; width: 150px; text-align: center;">
+                      Alpha filter <span id="step_val-value">...</span>
+                  </label>
+                  <input class="slider_selector" type="range" min="0" max="1" step="0.05" id="step_val">
+                  </p>
+              </div>
+              <svg width="800" height="600"></svg>
           </section> 
           </div>
         </main>
       </div>
     </div>
 <script>
+
+     $("#resultados").hide(); 
     var nodes = [];
 var links = [];
     function parseCSV(){
+        $("#noresultados").hide();
+        $("#resultados").show(); 
 
         var csvString = document.getElementById("csvInputString").value;
         var config = {	'dynamicTyping': true,
@@ -98,9 +130,9 @@ var links = [];
         var text = results.meta;
 
         var results_status = document.getElementById("addcsvdatastatus");
-        results_status.innerHTML=JSON.stringify(results.meta, null, 2); 
+        results_status.innerHTML= "Cantidad de filas: " + results.meta.fields.length; 
         var results_data = document.getElementById("csvdata");
-        results_data.innerHTML=JSON.stringify(results.data, null, 2); 
+        results_data.innerHTML= "Cantidad de columnas: " + Object.keys(results.data).length; 
 
         var matrix = transformToMatrix(results.data);
         console.log(JSON.stringify(combinationsOfTwo(Object.keys(matrix))));
@@ -121,6 +153,7 @@ var links = [];
                 links.push({"source": nodeSourceId, "target": nodeTargetId,
                     "weight": weight});
             });
+
         var svg = d3.select("svg"),
             width = +svg.attr("width"),
             height = +svg.attr("height"),
@@ -290,24 +323,10 @@ function transformToMatrix(json_data){
 
 </script>
 
-<div class="slider_selector">
-  <p style="text-align:center;">
-    <label for="step_val"
-           style="display: inline-block; width: 150px; text-align: center;">
-           Alpha filter <span id="step_val-value">...</span>
-    </label>
-      <input class="slider_selector" type="range" min="0" max="1" step="0.05" id="step_val">
-      </p>
-    </div>
-    <svg width="800" height="600"></svg>
 
     <!-- Bootstrap core JavaScript
         ================================================== -->
         <!-- Placed at the end of the document so the pages load faster -->
-        <script
-                     src="https://code.jquery.com/jquery-3.2.1.min.js"
-                     integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-                     crossorigin="anonymous"></script>
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
