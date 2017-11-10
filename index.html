@@ -118,9 +118,17 @@
     </div>
 <script>
 
-$("#resultados").hide(); 
-var nodes = [];
-var links = [];
+//$("#resultados").hide(); 
+
+var graph = { "nodes": [ { "id": 1, "name": "A" }, { "id": 2, "name": "B" }, { "id": 3, "name": "C" }, { "id": 4, "name": "D" }, { "id": 5, "name": "E" }, { "id": 6, "name": "F" }, { "id": 7, "name": "G" }, { "id": 8, "name": "H" }, { "id": 9, "name": "I" }, { "id": 10, "name": "J" } ], "links": [ { "source": 1, "target": 2, "weight": 0.8 }, { "source": 1, "target": 5, "weight": 0.2 }, { "source": 1, "target": 6, "weight": 1 }, { "source": 2, "target": 3, "weight": 0.1 }, { "source": 2, "target": 7, "weight": 0.7 }, { "source": 2, "target": 8, "weight": 0.6 } , { "source": 3, "target": 4, "weight": 0.8 },    { "source": 3, "target": 5, "weight": 0.8 }, { "source": 8, "target": 3, "weight": 0.5 } , { "source": 4, "target": 5, "weight": 0.1 } , { "source": 4, "target": 9, "weight": 0.3 }, { "source": 3, "target": 0, "weight": 0.2 }, { "source": 6, "target": 7, "weight": 0.2 }, { "source": 6, "target": 8, "weight": 0.8 }, { "source": 8, "target": 0, "weight": 0.9 } ] };
+//d3.json(data, function(error, graph) {
+  //if (error) throw error;
+  // console.log(graph.nodes);
+  // links = graph.links;
+  nodes = graph.nodes;
+  links = graph.links;
+
+draw(links, nodes);
 
 function parseCSVURL(){
     var text = $('#csvInputStringURL').val();
@@ -172,13 +180,17 @@ function parseCSVTextual(){
                     "weight": weight});
             });
 
+            draw(links, nodes);
+        }
+
+        function draw(links, nodes){
         var svg = d3.select("svg"),
             width = +svg.attr("width"),
             height = +svg.attr("height"),
         color = d3.scaleOrdinal(d3.schemeCategory10);
 
 
-var simulation, g, link, node;
+        var simulation, g, link, node;
 
         simulation = d3.forceSimulation(nodes)
             .force("charge", d3.forceManyBody().strength(-1000))
