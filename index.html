@@ -118,17 +118,9 @@
     </div>
 <script>
 
-//$("#resultados").hide(); 
-
-var graph = { "nodes": [ { "id": 1, "name": "A" }, { "id": 2, "name": "B" }, { "id": 3, "name": "C" }, { "id": 4, "name": "D" }, { "id": 5, "name": "E" }, { "id": 6, "name": "F" }, { "id": 7, "name": "G" }, { "id": 8, "name": "H" }, { "id": 9, "name": "I" }, { "id": 10, "name": "J" } ], "links": [ { "source": 1, "target": 2, "weight": 0.8 }, { "source": 1, "target": 5, "weight": 0.2 }, { "source": 1, "target": 6, "weight": 1 }, { "source": 2, "target": 3, "weight": 0.1 }, { "source": 2, "target": 7, "weight": 0.7 }, { "source": 2, "target": 8, "weight": 0.6 } , { "source": 3, "target": 4, "weight": 0.8 },    { "source": 3, "target": 5, "weight": 0.8 }, { "source": 8, "target": 3, "weight": 0.5 } , { "source": 4, "target": 5, "weight": 0.1 } , { "source": 4, "target": 9, "weight": 0.3 }, { "source": 3, "target": 0, "weight": 0.2 }, { "source": 6, "target": 7, "weight": 0.2 }, { "source": 6, "target": 8, "weight": 0.8 }, { "source": 8, "target": 0, "weight": 0.9 } ] };
-//d3.json(data, function(error, graph) {
-  //if (error) throw error;
-  // console.log(graph.nodes);
-  // links = graph.links;
-  nodes = graph.nodes;
-  links = graph.links;
-
-draw(links, nodes);
+$("#resultados").hide(); 
+var nodes = [];
+var links = [];
 
 function parseCSVURL(){
     var text = $('#csvInputStringURL').val();
@@ -180,17 +172,13 @@ function parseCSVTextual(){
                     "weight": weight});
             });
 
-            draw(links, nodes);
-        }
-
-        function draw(links, nodes){
         var svg = d3.select("svg"),
             width = +svg.attr("width"),
             height = +svg.attr("height"),
         color = d3.scaleOrdinal(d3.schemeCategory10);
 
 
-        var simulation, g, link, node;
+var simulation, g, link, node;
 
         simulation = d3.forceSimulation(nodes)
             .force("charge", d3.forceManyBody().strength(-1000))
@@ -221,20 +209,37 @@ function parseCSVTextual(){
             restart(this.value, node, nodes, link, links, label)
         });
 
+    function mouseover(d) {
+        d3.select(this).append("text")
+            .attr("class", "hover")
+            .attr('transform', function(d){
+                return 'translate(5, -10)';
+                })
+            .text(d.name ).attr('fill', 'black').attr('font-size', "40px");
+    }
+
+    // Toggle children on click.
+    function mouseout(d) {
+        d3.select(this).select("text.hover").remove();
+    }
 
 function restart(alpha_idx) {
   // Apply the general update pattern to the nodes.
   node = node.data(nodes, function(d) { return d.id;});
   node.exit().remove();
-  node = node.enter().append("circle").attr("fill", function(d) { return color(d.id); }).attr("r", 8)
+// Enter any new nodes at the parent's previous position.
+    var nodeEnter = node.enter().append("g")
+    .attr("class", "node")
+    .on("mouseover", mouseover)
+    .on("mouseout", mouseout);
+
+  node = nodeEnter.append("circle").attr("fill", function(d) { return color(d.id); }).attr("r", 8)
         .call(d3.drag()
             .on("start", dragstarted)
             .on("drag", dragged)
             .on("end", dragended))
         .merge(node);
-  // node = node.enter().append("text").text(function(d) { return "-" + d.id; }).merge(node);
-  // Apply the general update pattern to the labels.
-  // Apply the general update pattern to the links.
+
   link = link.data(links.filter(function (d) { return d.weight>alpha_idx;}), function(d) { return d.source + "-" + d.target; })
 
   // link = link.data(links, function(d) { return d.source.id + "-" + d.target.id; });
