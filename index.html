@@ -64,6 +64,11 @@
               <a class="nav-link" href="#" onclick="parseCSVTextual()"> Carga de CSV textual</a>
               <textarea id="csvInputString" class="form-control" rows="5"></textarea>
             </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" onclick="parseCSVTextual()"> Carga de CSV por Archivo</a>
+              <input type="file" id="fileElem" type="file" accept=".csv" style="display:none" onchange="parseCSVFile(this.files)">
+              <a href="#" id="fileSelect">Elija un archivo</a>
+            </li>
           </ul>
         </nav>
         <main role="main" class="col-sm-9 ml-sm-auto col-md-10 pt-3">
@@ -156,6 +161,16 @@ function parseCSVURL(){
 });
 
 }
+function parseCSVFile(file){
+
+    var config = {    'dynamicTyping': true,
+        complete: function(results) {
+        transformData(results);
+        },
+        'header': true};
+    var results = Papa.parse(file[0], config);
+
+}
 function parseCSVTextual(){
     var csvString = document.getElementById("csvInputString").value;
     console.log(csvString);
@@ -197,6 +212,7 @@ function parseCSVTextual(){
                 links.push({"source": nodeSourceId, "target": nodeTargetId,
                     "weight": weight});
             });
+
 
         var svg = d3.select("svg"),
             width = +svg.attr("width"),
@@ -380,6 +396,16 @@ function transformToMatrix(json_data){
     return(output);
 
 };
+
+var fileSelect = document.getElementById("fileSelect"),
+  fileElem = document.getElementById("fileElem");
+
+fileSelect.addEventListener("click", function (e) {
+  if (fileElem) {
+    fileElem.click();
+  }
+  e.preventDefault(); // prevent navigation to "#"
+}, false);
 
 
 </script>
