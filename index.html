@@ -119,44 +119,67 @@
         </main>
       </div>
     </div>
+</body>
+</html>
 <script>
 
 $("#resultados").hide(); 
 var nodes = [];
 var links = [];
 
+$(document).ready(function() {
+    var csvString="Anio,INGR_CORR_TOT_2004,GCOR.EGRE_CORR_TOT_2004,GCOR.REMUN_SPUB_2004,GCOR.INTER_SPUB_2004,GCOR.SEG_SOC_2004,GCOR.TRANSF_CORR_2004,RTDO_ECON_2004,INGR_CAP_TOT_2004,GCAP.EGRE_CAP_TOT_2004,GCAP.INV_REAL_2004,INGR_NOFIG_2004,EGRE_NOFIG_2004,GASTO_PRIM_2004,SUPER_PRI_2004,RTDO_FINANC_2004 \n \
+1961,43987.035462587,34281.4146686058,15571.8046906408,1778.71258030776,7554.85658512762,3238.03837446666,9705.62079398113,1049.8991161702,19039.1899594165,16079.7655898882,45036.9345787572,53320.6046280224,51541.8920477146,-6504.95746895742,-8283.67004926519 \n \
+1962,35071.4005243099,34060.4853200119,16955.3095923019,2241.17993405678,6998.74852355605,2046.35395802632,1010.91520429795,1437.3524805045,17061.5783065004,13908.9397852801,36508.7530048144,51122.0636265123,48880.8836924555,-12372.1306876411,-14613.3106216979 \n \
+1963,34257.2673775609,33696.0598336779,15627.9668625465,2031.29231466634,7233.46090500041,1881.06467385636,561.207543882987,1256.54690991774,14797.4226197828,12508.597206585,35513.8142874787,48493.4824534607,46462.1901387944,-10948.3758513157,-12979.668165982 \n \
+1964,37024.281589999,37682.532780007,19453.8412652704,2744.84769893111,7825.59067135383,2201.8544993914,-658.251190008052,757.287685521585,13731.0685977944,12798.7595193394,37781.5692755205,51413.6013778014,48668.7536788703,-10887.1844033498,-13632.0321022809 \n \
+1965,42557.3132162772,38585.8422097742,19865.394447508,2224.90809929091,8726.78497481585,2931.70666741856,3971.47100650302,790.542474303907,13963.7938914545,12774.6304237516,43347.8556905811,52549.6361012287,50324.7280019378,-6976.87231135669,-9201.78041064759 \n \
+1966,46154.5239937955,43659.9944618951,22491.1321079787,2222.32961140659,10974.7298605521,3211.84996366274,2494.52953190043,826.964087111535,14636.609752887,12197.1747940725,46981.4880809071,58296.6042147821,56074.2746033755,-9092.78652246845,-11315.1161338751 \n \
+1967,55456.8174595542,43551.904207627,21999.1638460976,2237.28336480312,12710.8001980329,3201.16203591996,11904.9132519272,1128.75831874423,17986.0879317827,16442.3322754071,56585.5757782984,61537.9921394096,59300.7087746065,-2715.13299630812,-4952.41636111123 \n \
+1968,57044.1765925652,43213.3068674971,21495.5455256176,2331.10290793603,14357.5015444921,3181.02924234632,13830.8697250681,1347.84708376865,20758.8902621514,19855.0815085768,58392.0236763338,63972.1971296486,61641.0942217125,-3249.0705453787,-5580.17345331472 \n \
+1969,61541.1167726798,45291.5513156257,23767.1891345693,2153.20131501961,13474.8139824028,4053.55631656653,16249.5654570541,1236.90667757895,22276.3431479262,21061.6607140387,62778.0234502588,67567.8944635519,65414.6931485323,-2636.66969827359,-4789.87101329321"; 
+
+    var config = {    'dynamicTyping': true,
+        'header': true};
+    var results = Papa.parse(csvString, config);
+    transformData(results); 
+});
+
 function parseCSVURL(){
     var text = $('#csvInputStringURL').val();
     Papa.parse(text, {
-	download: true,
-	complete: function(results) {
-		transformData(results);
+    download: true,
+    complete: function(results) {
+        transformData(results);
             // console.log(results);
-	}
+    }
 });
 
 }
 function parseCSVTextual(){
     var csvString = document.getElementById("csvInputString").value;
-    var config = {	'dynamicTyping': true,
+    console.log(csvString);
+    var config = {    'dynamicTyping': true,
         'header': true};
     var results = Papa.parse(csvString, config);
-    transformData(results); 
+    transformData(results);
 
 }
     function transformData(results){
         $("#noresultados").hide();
-        $("#resultados").show(); 
+        $("#resultados").show();
 
         var text = results.meta;
-
         var results_status = document.getElementById("addcsvdatastatus");
-        results_status.innerHTML= "Errores: " + results.errors.length; 
+        results_status.innerHTML= "Errores: " + results.errors.length;
         var results_data = document.getElementById("csvdata");
         results_data.innerHTML= "Cantidad de columnas: " + Object.keys(results.data).length; 
 
         var matrix = transformToMatrix(results.data);
+        console.log('coco');
+        console.log(results);
         console.log(JSON.stringify(combinationsOfTwo(Object.keys(matrix))));
+        console.log('caca');
         console.log(JSON.stringify(transformToMatrix(results.data)));
 
 // Crea los nodos
@@ -370,5 +393,3 @@ function transformToMatrix(json_data){
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
 
-</body>
-</html>
